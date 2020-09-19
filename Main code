@@ -1,0 +1,157 @@
+#include<iostream>
+#include<algorithm>
+#include<queue>
+using namespace std;
+struct process{
+        int pid,at,bt;
+};
+//function to sort the process according to their arrival time and if their arrival time is same then they are sort according th their process id's and for sjf according to burst time.
+bool custom(process a,process b){
+    if(a.at==b.at){
+        return (a.pid<b.pid);
+    }
+    return (a.at<b.at);
+}
+bool custom1(process a,process b){
+    if(a.at==b.at){
+        return (a.bt<b.bt);
+    }
+    return (a.at<b.at);
+}
+//function for first come first serve
+void fcfs(process sched[],int n){
+        int ct[n],tat[n],wt[n];
+        ct[0]=sched[0].bt+sched[0].at;
+        tat[0]=ct[0]-sched[0].at;
+        wt[0]=tat[0]-sched[0].bt;
+        for(int i=1;i<n;i++){
+            ct[i]=sched[i].bt+ct[i-1];
+            tat[i]=ct[i]-sched[i].at;
+            wt[i]=tat[i]-sched[i].bt;
+        }
+        cout<<endl;
+        cout<<"The scheduling of process according to the first come first serve is :"<<endl;
+        cout<<"PID\t"<<"AT\t"<<"BT\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<endl;
+        for(int i=0;i<n;i++){
+            cout<<sched[i].pid<<"\t"<<sched[i].at<<"\t"<<sched[i].bt<<"\t"<<ct[i]<<"\t"<<tat[i]<<"\t"<<wt[i]<<endl;
+        }
+}
+
+//function for shortest job first
+void sjf(process sched[],int n){
+        int ct[n],tat[n],wt[n],at[n],bt[n];
+        int tt=0;
+        int INT_MAX;
+        queue<int> q;
+        q.push(0);
+        int key;
+        for(int i=0;i<n;i++){
+            ct[i]=0;
+            bt[i]=sched[i].bt;
+            at[i]=sched[i].at;
+        }
+        at[0]=-1;
+        while(!q.empty()){
+            tt+=sched[q.front()].bt;
+            bt[q.front()]=INT_MAX;
+            for(int i=0;i<n;i++){
+                if(at[i]>=0&&at[i]<=tt){
+                    key=i;
+                    for(int j=0;j<n;j++){
+                        if(at[j]>=0&&at[j]<=tt&&bt[key]>bt[j]){
+                            key=j;
+                        }
+                    }
+                }
+            }
+            if(at[key]!=-1){
+                q.push(key);
+                at[key]=-1;
+            }
+            ct[q.front()]=tt;
+            q.pop();
+        }
+        for(int i=0;i<n;i++){
+            tat[i]=ct[i]-sched[i].at;
+            wt[i]=tat[i]-sched[i].bt;
+        }
+        cout<<endl;
+        cout<<"The scheduling of process according to the shrotest job first is :"<<endl;
+        cout<<"PID\t"<<"AT\t"<<"BT\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<endl;
+        for(int i=0;i<n;i++){
+            cout<<sched[i].pid<<"\t"<<sched[i].at<<"\t"<<sched[i].bt<<"\t"<<ct[i]<<"\t"<<tat[i]<<"\t"<<wt[i]<<endl;
+        }   
+}
+
+//Function for round robin 
+void rr(process sched[],int n ){
+    int time_quantum=2;
+    queue<int> q;
+    int ct[n],tat[n],wt[n],at[n],bt[n];
+    for(int i=0;i<n;i++){
+        at[i]=sched[i].at;
+        bt[i]=sched[i].bt;
+        ct[i]=0;
+    }
+    q.push(0);
+    at[0]=-1;
+    int tt=0;
+    while(!q.empty()){
+        if(bt[q.front()]>time_quantum){
+            bt[q.front()]-=time_quantum;
+            tt+=time_quantum;
+            for(int i=0;i<n;i++){
+                if(at[i]!=-1&&at[i]<=tt){
+                    q.push(i);
+                    at[i]=-1;
+                }
+            }
+            ct[q.front()]=tt;
+            q.push(q.front());
+            q.pop();
+            //cout<<tt<<endl;
+        }
+        else{
+            ct[q.front()]=tt+bt[q.front()];
+            tt+=bt[q.front()];
+            for(int i=0;i<n;i++){
+                if(at[i]>=0&&at[i]<=tt){
+                    q.push(i);
+                    at[i]=-1;
+                }
+            }
+            bt[q.front()]=0;
+            q.pop();
+            //cout<<tt<<endl;
+        }
+       // cout<<q.front()<<endl;
+    }
+    for(int i=0;i<n;i++){
+        tat[i]=ct[i]-sched[i].at;
+        wt[i]=tat[i]-sched[i].bt;
+    }
+    cout<<endl;
+    cout<<"The schedulig of process according to the robin round algorithm is : "<<endl;
+    cout<<"PID\t"<<"AT\t"<<"BT\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<endl;
+        for(int i=0;i<n;i++){
+            cout<<sched[i].pid<<"\t"<<sched[i].at<<"\t"<<sched[i].bt<<"\t"<<ct[i]<<"\t"<<tat[i]<<"\t"<<wt[i]<<endl;
+        }
+}
+int main(){
+    int prcs,i;
+        cout<<"Enter the total number of process to be schedule"<<endl;
+        cin>>prcs;
+        process sched[prcs]; 
+        for(i=0;i<prcs;i++){
+            cout<<"Enter the process id, arrival time and burst time for process"<<endl;
+            cin>>sched[i].pid>>sched[i].at>>sched[i].bt;
+        }
+        sort(sched,sched+prcs,custom);
+        fcfs(sched,prcs);
+        sort(sched,sched+prcs,custom1);
+        sjf(sched,prcs);
+        sort(sched,sched+prcs,custom);
+        rr(sched,prcs);
+        
+
+}
